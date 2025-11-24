@@ -163,11 +163,7 @@ Programul robotului foloseste o bucla WHILE ca sa citeasca fiecare element din a
 
 
 
-![](poze/Aspose.Words.60a43c36-3b6d-4bae-a849-c6aa0276a8dd.012.png)
-
-
-
-![](poze/Aspose.Words.60a43c36-3b6d-4bae-a849-c6aa0276a8dd.013.png)
+![](poze/Aspose.Words.60a43c36-3b6d-4bae-a849-c6aa0276a8dd.012.png)![](poze/Aspose.Words.60a43c36-3b6d-4bae-a849-c6aa0276a8dd.013.png)
 
 
 
@@ -236,6 +232,7 @@ Atunci cand piesa ajunge in cealalta parte a tablei de joc aceasta este promovat
 1. <https://realpython.com/python-sockets/>
 1. documentatia din aplicatia ace 
 1. cursurile din scoala de vara
+
 
 
 
