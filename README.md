@@ -12,8 +12,6 @@ Mana robotica care joaca dame
 
 de Ion Radu
 
-Grupa 623 AB
-
 
 # Cuprins
 [Contextul	3](#_toc206957858)
@@ -240,4 +238,5 @@ Atunci cand piesa ajunge in cealalta parte a tablei de joc aceasta este promovat
 1. cursurile din scoala de vara
 
 12
+
 
