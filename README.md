@@ -14,13 +14,13 @@ de Ion Radu
 
 
 # Cuprins
-[Contextul	3](#_toc206957858)
+[Contextul](#_toc206957858)
 
-[Elemente folosite	4](#_toc206957859)
+[Elemente folosite](#_toc206957859)
 
-[Arhitectura programului	5](#_toc206957860)
+[Arhitectura programului](#_toc206957860)
 
-[Resurse	12](#_toc206957861)
+[Resurse](#_toc206957861)
 
 
 
@@ -63,7 +63,7 @@ Aceasta operatie de trunchiere se face cu ajutorul functiei POS() si MID().
 
 
 
-\1) Coordonatele
+1) Coordonatele
 
 In cazul miscarii piesei in pozitia ei finala se face urmatorul calcul:
 
@@ -142,7 +142,7 @@ place = X: 620.000, Y: 0.000, Z: 15.000
 
 
 
-poze/
+
 
 
 
@@ -151,7 +151,7 @@ poze/
 
 Formula incrementeaza x-ul intr-o maniera ciclica, mutand pozitia initiala cu cate 2 patrate spre dreapta pana ajunge in capat moment in care revine in pozitia initiala, iar la fiecare rand impar, x-ul se muta un patrat la stanga, deoarece pozitia patratelor negre alterneaza cu fiecare rand, iar y-ul este incrementat din 5 in 5 patrate.
 
-\2) Capturarea
+2) Capturarea
 
 In cazul in care o miscare este reprezentate in felul acesta: 27x16; atunci inseamna ca niste piese vor fi capturate. Robotul primeste un array in forma text: ”[21, 11, 12, ...]”, care contine cel putin un element in cazul unei capturari.
 
@@ -179,7 +179,7 @@ In bucla WHILE ne folosim de functiile POS si WHILE ca sa extragem valoarea patr
 
 *Figure *8* Bucla WHILE pentru array piese capturate*
 
-\3) Randul culorii curente
+3) Randul culorii curente
 
 Randul jucatorului curent este exprimata printr-un numar: 1 pentru alb si 2 pentru negru.
 
@@ -206,7 +206,7 @@ Cu ajutorul acestei variabile putem determina in tabara cui va ajunge piesa capt
 
 ![](poze/Aspose.Words.60a43c36-3b6d-4bae-a849-c6aa0276a8dd.019.png)
 
-\4) Locatia regilor
+4) Locatia regilor
 
 Acest array este verificat de fiecare data inainte de executarea unei miscari sau inaintea capturarii unei piese, deoarece regele este de 2 ori mai inalta decat o piesa normala si este esential sa nu intre in coliziune cu aceasta. Prin intermediul unui for se verifica pozitia regiilor si daca corespunde cu miscarea curenta, modifica o variabila globala, numita is\_king, din FALSE in TRUE si modifica variabila height\_mod din 15 in 30.
 
@@ -218,7 +218,7 @@ Acest array este verificat de fiecare data inainte de executarea unei miscari sa
 
 *Figure *13* Daca este rege modifica height\_mod*
 
-\5) Promovarea
+5) Promovarea
 
 Atunci cand piesa ajunge in cealalta parte a tablei de joc aceasta este promovata in rege. Scriptul python verifica daca numarul de regi a fost incrementat si daca este adevarat, serverul ii trimite robotului numarul ’1<a name="_hlk206873236"></a>’, semn ca o piesa a fost promovata. In cazul in care nu se schimba numarul de regi valoarea ramane ’0’.
 
@@ -237,6 +237,6 @@ Atunci cand piesa ajunge in cealalta parte a tablei de joc aceasta este promovat
 1. documentatia din aplicatia ace 
 1. cursurile din scoala de vara
 
-12
+
 
 
