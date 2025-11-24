@@ -1,0 +1,281 @@
+.PROGRAM movefromto(p1, p2, xpickshift, ypickshift, zpickshift, xplaceshift, yplaceshift, zplaceshift)
+        SET pick = SHIFT(p1 BY xpickshift,ypickshift,zpickshift)
+        SET place = SHIFT(p2 BY xplaceshift,yplaceshift,zplaceshift)
+
+        OPENI
+        APPRO pick, 30
+        BREAK
+        MOVE pick
+        BREAK
+        CLOSEI
+        BREAK
+        DEPART 30
+        BREAK
+        APPRO place, 30
+        BREAK
+        MOVE place
+        BREAK
+        OPENI
+        MOVE safe
+        BREAK
+.END
+
+.PROGRAM move_captures(turn, p1, p2, p3, z)
+        IF has_promoted == 0 THEN
+            IF turn == 1 THEN
+                CALL movefromto(p1, p3, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height, 2*dist*(INT(nrobj_white/5) MOD 2), -1*2*dist*INT(nrobj_white/10), height*(nrobj_white MOD 5))
+                nrobj_white = nrobj_white+1
+            ELSE
+                CALL movefromto(p1, p2, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height, 2*dist*(INT(nrobj_black/5) MOD 2), 2*dist*INT(nrobj_black/10), height*(nrobj_black MOD 5))
+                nrobj_black = nrobj_black+1
+            END
+        ELSE
+            IF turn == 1 THEN
+                CALL movefromto(p1, p2, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height, 2*dist*(INT(nrobj_black/5) MOD 2), 2*dist*INT(nrobj_black/10), height*(nrobj_black MOD 5))
+                nrobj_black = nrobj_black+1
+
+            ELSE
+                CALL movefromto(p1, p3, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height, 2*dist*(INT(nrobj_white/5) MOD 2), -1*2*dist*INT(nrobj_white/10), height*(nrobj_white MOD 5))
+                nrobj_white = nrobj_white+1
+            END
+        END
+.END
+
+.PROGRAM array_length($string)
+        LOCAL delimiter, $local_string
+        $local_string = $string
+        count = 0
+        WHILE POS($local_string,",") > 0 DO
+            count = count+1
+            delimiter = POS($local_string,",")
+            $local_string = $MID($local_string,delimiter+1,LEN($local_string)-delimiter)
+        END
+        RETURN
+.END
+
+.PROGRAM dame()
+        ;declarare variabile
+        AUTO lun, do_wait, del1, del2, del3, del4, del5, del6, del7, del8, x, y, z, turn
+        AUTO $read_str, $xsir, $ysir, $zsir, $captures_sir, $turn_sir, $king_sir
+        GLOBAL dist, nrobj_white, nrobj_black, height, count, height_mod, nrking_white, nrking_black, has_promoted
+
+        PARAMETER HAND.TIME = 0.5
+        SPEED 100 ALWAYS
+        TOOL TRANS(0,0,25)
+
+        ;initiere variabile
+        count = 0
+        height = 15
+        dist = 40
+        nrobj_white = 0
+        nrobj_black = 0
+        nrking_white = 3
+        nrking_black = 3
+        do_wait = 500
+        is_king = FALSE
+
+        TYPE is_king
+
+        OPENI
+        MOVE safe
+
+        ;conectare server tcp
+        ATTACH (lun, 4) "TCP"
+        status = IOSTAT(lun)
+        IF status < 0 THEN
+            TYPE "Eroare la ATTACH: ", $ERROR(status)
+            GOTO 110
+        END
+
+        FOPEN (lun, 0) "127.0.0.3 /REMOTE_PORT 1234 /BUFFER_SIZE 1024"
+        status = IOSTAT(lun)
+        IF status < 0 THEN
+            TYPE "Eroare la FOPEN: ", $ERROR(status)
+            GOTO 100
+        END
+
+        WRITE (lun) "ready"
+
+        TYPE "Se primesc coordonnatele"
+
+        WHILE TRUE DO
+            ;primire valoare server
+            READ (lun, do_wait) $read_str
+            IF IOSTAT(lun) < 0 GOTO 100
+            TYPE $read_str
+            WRITE (lun) $read_str
+            IF IOSTAT(lun) < 0 GOTO 100
+
+            IF $read_str == "exit" GOTO 100
+
+            ;determinarea delimitarilor din string
+            del1 = POS($read_str,"-")
+            del2 = POS($read_str,",")
+            del3 = POS($read_str,"[")
+            del4 = POS($read_str,"]")
+            del5 = POS($read_str,",",del4+1)
+            del7 = POS($read_str,"[",del5+1)
+            del8 = POS($read_str,"]",del5+1)
+
+
+            ;reset value
+            has_promoted = 0
+
+            ;turn
+            $turn_sir = $MID($read_str,del5+1,LEN($read_str)-del5)
+            turn = VAL($turn_sir)
+            TYPE "Turn:", turn
+
+            ;verifica rege
+            $king_sir = $MID($read_str,del7+1,del8-del7-1)
+            ;extrage numarul de regi
+            CALL array_length($king_sir)
+
+            TYPE count, " ", $king_sir
+
+            ;verifica daca au fost capturate piese
+            IF del1 == 0 THEN
+                del1 = POS($read_str,"x")
+                ;extragere array
+                $captures_sir = $MID($read_str,del3+1,del4-del3-1)
+                TYPE "Captures on: ", $captures_sir
+                WHILE POS($captures_sir,",") > 0 DO
+                    del6 = POS($captures_sir,",")
+                    ;extragere valoare
+                    $zsir = $MID($captures_sir,1,del6-1)
+                    z = VAL($zsir)
+
+                    height_mod = height
+                    ;verifica daca este rege
+                    CALL get_king_pos(del7, $king_sir, z)
+
+                    IF is_king == TRUE THEN
+                        height_mod = 2*height
+                        CALL captured_king(turn, p1, p4, p5, z)
+
+                    ELSE
+                        CALL move_captures(turn, p1, p2, p3, z)
+                    END
+
+                    TYPE z
+                    ;avanseaza la urmatoarea valoare din sir
+                    $captures_sir = $MID($captures_sir,del6+1,LEN($captures_sir)-del6)
+                END
+
+
+                z = VAL($captures_sir)
+
+                height_mod = height
+
+                CALL get_king_pos(del7, $king_sir, z)
+
+                IF is_king == TRUE THEN
+                    height_mod = 2*height
+                    CALL captured_king(turn, p1, p4, p5, z)
+
+                ELSE
+                    CALL move_captures(turn, p1, p2, p3, z)
+                END
+
+                TYPE z
+            END
+
+            ;extrage pozitia initiala si finala
+            $xsir = $MID($read_str,1,del1-1)
+            $ysir = $MID($read_str,del1+1,del2-del1-1)
+
+            TYPE "Move: ", $xsir, " to: ", $ysir
+
+            x = VAL($xsir)
+            y = VAL($ysir)
+
+            height_mod = height
+
+            CALL get_king_pos(del7, $king_sir, y)
+
+            IF is_king == TRUE THEN
+                height_mod = 2*height
+            END
+
+            ;has promoted
+            has_promoted = VAL($MID($read_str,del8+2,1))
+
+            TYPE "has_promoted = ", has_promoted
+
+            ;daca a fost promovat pune-l in sectiunea de piese capturate si scoate un rege din stiva
+            ;altfel muta piesa normal in pozitia finala
+            IF has_promoted == 1 THEN
+                CALL move_captures(turn, p1, p2, p3, x)
+                height_mod = 2*height
+                CALL put_king(turn, p1, p4, p5, y)
+            ELSE
+                CALL movefromto(p1, p1, dist*(INT((x-1)/5) MOD 2)-((x-1) MOD 5)*2*dist, INT((x-1)/5)*dist, height_mod, dist*(INT((y-1)/5) MOD 2)-((y-1) MOD 5)*2*dist, INT((y-1)/5)*dist, height_mod)
+            END
+
+            WRITE (lun) "done"
+        END
+        ;incheie conexiunea
+   100
+        FCLOSE (lun)
+        DETACH (lun)
+   110
+
+.END
+
+.PROGRAM captured_king(turn, p1, p2, p3, z)
+        ;daca regele este capturat pune-l inapoi in stiva
+        IF turn == 1 THEN
+            nrking_white = nrking_white+1
+            CALL movefromto(p1, p3, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height_mod, 2*dist*(nrking_white MOD 2), -1*2*dist*INT(nrking_white/2), 0)
+        ELSE
+            nrking_black = nrking_black+1
+            CALL movefromto(p1, p2, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height_mod, 2*dist*(nrking_black MOD 2), 2*dist*INT(nrking_black/2), 0)
+        END
+
+
+.END
+
+.PROGRAM get_king_pos(delimiter, $string, pos)
+        LOCAL $sir
+        ;initiaza variabila ca fiind false
+        is_king = FALSE
+        
+        $sir = $string
+        count = count+1
+
+        TYPE "kings(", count, "): ", $sir
+
+        IF count > 0 THEN
+
+            FOR i = 1 TO count-1
+                delimiter = POS($sir,",")
+                ;extrage pozitia regelui
+                king_pos = VAL($MID($sir,1,delimiter-1))
+                ;daca este adevarat is_king = true si termina subprogramul
+                IF king_pos == pos THEN
+                    is_king = TRUE
+                    RETURN
+                END
+                ;trece la urmatoarea valoare
+                $sir = $MID($sir,delimiter+1,LEN($sir)-delimiter)
+            END
+            king_pos = VAL($sir)
+            IF king_pos == pos THEN
+                is_king = TRUE
+            END
+        END
+
+.END
+
+.PROGRAM put_king(turn, p1, p2, p3, z)
+ ;2 * dist * (i%2)
+        IF turn == 1 THEN
+            CALL movefromto(p3, p1, 2*dist*(nrking_white MOD 2), -1*2*dist*INT(nrking_white/2), 0, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height_mod)
+            nrking_white = nrking_white-1
+        ELSE
+            CALL movefromto(p2, p1, 2*dist*(nrking_black MOD 2), 2*dist*INT(nrking_black/2), 0, dist*(INT((z-1)/5) MOD 2)-((z-1) MOD 5)*2*dist, INT((z-1)/5)*dist, height_mod)
+            nrking_black = nrking_black-1
+        END
+
+.END
+
