@@ -226,12 +226,13 @@ Atunci cand piesa ajunge in cealalta parte a tablei de joc aceasta este promovat
 
 *Figure *15* Stiva de regi*
 ## <a name="_toc206957861"></a>Resurse
-1. ` `<https://github.com/AttackingOrDefending/pydraughts>
+1. <https://github.com/AttackingOrDefending/pydraughts>
 1. <https://edgilbert.org/InternationalDraughts/download_links.htm>
 1. <https://docs.python.org/3/howto/sockets.html>
 1. <https://realpython.com/python-sockets/>
 1. documentatia din aplicatia ace 
 1. cursurile din scoala de vara
+
 
 
 
